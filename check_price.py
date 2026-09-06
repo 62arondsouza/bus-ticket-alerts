@@ -44,9 +44,9 @@ NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 # different cutoff later.
 MIN_DEPARTURE_HOUR = int(os.environ.get("MIN_DEPARTURE_HOUR", "21"))
 
-# Cap how many individual drops get listed in one push notification, so a
-# rare across-the-board price change doesn't produce a giant wall of text.
-MAX_DROPS_IN_MESSAGE = 10
+# Cap how many buses get listed in one push notification, so a route with
+# a lot of late-departure options doesn't produce a giant wall of text.
+MAX_BUSES_IN_MESSAGE = 10
 
 STATE_FILE = Path(__file__).parent / "last_prices.json"
 
@@ -119,6 +119,24 @@ def save_state(state):
 
 # ---- Notifying ------------------------------------------------------------
 
+def format_bus_list(buses, previous, limit=MAX_BUSES_IN_MESSAGE):
+    """One line per bus, cheapest first, capped at `limit`. Buses whose
+    price fell since the last check show their previous price too."""
+    ranked = sorted(buses, key=lambda b: b["min_price"])
+    lines = []
+    for i, bus in enumerate(ranked[:limit], start=1):
+        price = bus["min_price"]
+        prev = previous.get(bus["group_id"])
+        if prev is not None and price < prev["price"]:
+            note = f"Rs.{price:.0f} (was Rs.{prev['price']:.0f})"
+        else:
+            note = f"Rs.{price:.0f}"
+        lines.append(f"{i}. {bus['operator_name']} ({bus['departure_time']}): {note}")
+    if len(ranked) > limit:
+        lines.append(f"...and {len(ranked) - limit} more")
+    return lines
+
+
 def notify(title, message):
     if not NTFY_TOPIC:
         print("NTFY_TOPIC is not set - skipping push notification. Message was:")
@@ -176,23 +194,17 @@ def main():
     )
 
     if not previous:
+        lines = format_bus_list(buses, previous)
         notify(
             "Bus price tracking started",
             f"Tracking {len(buses)} buses departing {MIN_DEPARTURE_HOUR}:00+ on "
-            f"{SOURCE} -> {DESTINATION}, {DATE}.\n"
-            f"Cheapest right now: Rs.{cheapest['min_price']:.0f} "
-            f"({cheapest['operator_name']}, departs {cheapest['departure_time']})",
+            f"{SOURCE} -> {DESTINATION}, {DATE}.\n\n" + "\n".join(lines),
         )
     elif drops:
-        lines = [
-            f"{operator} ({departure_time}): Rs.{old:.0f} -> Rs.{new:.0f}"
-            for operator, departure_time, old, new in drops[:MAX_DROPS_IN_MESSAGE]
-        ]
-        if len(drops) > MAX_DROPS_IN_MESSAGE:
-            lines.append(f"...and {len(drops) - MAX_DROPS_IN_MESSAGE} more")
+        lines = format_bus_list(buses, previous)
         notify(
             "Bus price drop!" if len(drops) == 1 else f"{len(drops)} bus prices dropped!",
-            f"{SOURCE} -> {DESTINATION} on {DATE} ({MIN_DEPARTURE_HOUR}:00+ departures)\n"
+            f"{SOURCE} -> {DESTINATION} on {DATE} ({MIN_DEPARTURE_HOUR}:00+ departures)\n\n"
             + "\n".join(lines),
         )
     else:
