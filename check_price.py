@@ -1,9 +1,10 @@
 """
 Bus price-drop checker.
 
-Fetches current bus fares for a route from your busscanner API, compares
-the cheapest fare to the last time this script ran, and sends a free push
-notification (via ntfy.sh) to your phone if the price has dropped.
+Fetches current bus fares for a route from your busscanner API, tracks
+every bus departing at or after a chosen hour (default 9 PM) individually,
+and sends a free push notification (via ntfy.sh) to your phone whenever
+any one of those buses' fares drops.
 
 Meant to be run on a schedule (see .github/workflows/check-price.yml for a
 free GitHub Actions cron setup), but it works fine run by hand or via any
@@ -43,7 +44,11 @@ NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 # different cutoff later.
 MIN_DEPARTURE_HOUR = int(os.environ.get("MIN_DEPARTURE_HOUR", "21"))
 
-STATE_FILE = Path(__file__).parent / "last_price.json"
+# Cap how many individual drops get listed in one push notification, so a
+# rare across-the-board price change doesn't produce a giant wall of text.
+MAX_DROPS_IN_MESSAGE = 10
+
+STATE_FILE = Path(__file__).parent / "last_prices.json"
 
 
 # ---- Fetching ---------------------------------------------------------
@@ -93,34 +98,23 @@ def _is_late_enough(group):
         return False  # skip anything with an unparseable/missing time
 
 
-def cheapest_fare(data):
-    """Return (price, operator_name, departure_time) for the cheapest bus
-    among those departing at or after MIN_DEPARTURE_HOUR (default 9 PM)."""
+def eligible_buses(data):
+    """Return every bus group departing at or after MIN_DEPARTURE_HOUR."""
     groups = data.get("grouped_buses") or []
-    eligible = [g for g in groups if _is_late_enough(g)]
-    if not eligible:
-        raise RuntimeError(
-            f"No buses departing at or after {MIN_DEPARTURE_HOUR}:00 were found"
-        )
-    best = min(eligible, key=lambda g: g["min_price"])
-    return best["min_price"], best["operator_name"], best["departure_time"]
+    return [g for g in groups if _is_late_enough(g)]
 
 
 # ---- Persisted state ----------------------------------------------------
 
-def load_last_price():
+def load_state():
+    """Returns {group_id: {"price", "operator", "departure_time", "checked_at"}, ...}"""
     if STATE_FILE.exists():
         return json.loads(STATE_FILE.read_text())
-    return None
+    return {}
 
 
-def save_state(price, operator, departure_time):
-    STATE_FILE.write_text(json.dumps({
-        "price": price,
-        "operator": operator,
-        "departure_time": departure_time,
-        "checked_at": datetime.now(timezone.utc).isoformat(),
-    }, indent=2))
+def save_state(state):
+    STATE_FILE.write_text(json.dumps(state, indent=2, sort_keys=True))
 
 
 # ---- Notifying ------------------------------------------------------------
@@ -146,31 +140,65 @@ def notify(title, message):
 
 def main():
     data = fetch_search_results()
-    price, operator, departure_time = cheapest_fare(data)
+    buses = eligible_buses(data)
+    if not buses:
+        raise RuntimeError(
+            f"No buses departing at or after {MIN_DEPARTURE_HOUR}:00 were found"
+        )
+
+    previous = load_state()
+    checked_at = datetime.now(timezone.utc).isoformat()
+    new_state = {}
+    drops = []
+
+    for bus in buses:
+        gid = bus["group_id"]
+        price = bus["min_price"]
+        operator = bus["operator_name"]
+        departure_time = bus["departure_time"]
+
+        new_state[gid] = {
+            "price": price,
+            "operator": operator,
+            "departure_time": departure_time,
+            "checked_at": checked_at,
+        }
+
+        prev = previous.get(gid)
+        if prev is not None and price < prev["price"]:
+            drops.append((operator, departure_time, prev["price"], price))
+
+    cheapest = min(buses, key=lambda g: g["min_price"])
     print(
-        f"Cheapest fare departing at/after {MIN_DEPARTURE_HOUR}:00: "
-        f"Rs.{price:.0f} ({operator}, departs {departure_time})"
+        f"Tracking {len(buses)} buses departing at/after {MIN_DEPARTURE_HOUR}:00. "
+        f"Cheapest right now: Rs.{cheapest['min_price']:.0f} "
+        f"({cheapest['operator_name']}, departs {cheapest['departure_time']})"
     )
 
-    previous = load_last_price()
-
-    if previous is None:
+    if not previous:
         notify(
             "Bus price tracking started",
-            f"Tracking {SOURCE} -> {DESTINATION} on {DATE}, buses departing "
-            f"{MIN_DEPARTURE_HOUR}:00 or later.\n"
-            f"Current cheapest fare: Rs.{price:.0f} ({operator}, departs {departure_time})",
+            f"Tracking {len(buses)} buses departing {MIN_DEPARTURE_HOUR}:00+ on "
+            f"{SOURCE} -> {DESTINATION}, {DATE}.\n"
+            f"Cheapest right now: Rs.{cheapest['min_price']:.0f} "
+            f"({cheapest['operator_name']}, departs {cheapest['departure_time']})",
         )
-    elif price < previous["price"]:
+    elif drops:
+        lines = [
+            f"{operator} ({departure_time}): Rs.{old:.0f} -> Rs.{new:.0f}"
+            for operator, departure_time, old, new in drops[:MAX_DROPS_IN_MESSAGE]
+        ]
+        if len(drops) > MAX_DROPS_IN_MESSAGE:
+            lines.append(f"...and {len(drops) - MAX_DROPS_IN_MESSAGE} more")
         notify(
-            "Bus price dropped!",
-            f"{SOURCE} -> {DESTINATION} on {DATE} (departs {MIN_DEPARTURE_HOUR}:00+)\n"
-            f"Rs.{previous['price']:.0f} -> Rs.{price:.0f} ({operator}, departs {departure_time})",
+            "Bus price drop!" if len(drops) == 1 else f"{len(drops)} bus prices dropped!",
+            f"{SOURCE} -> {DESTINATION} on {DATE} ({MIN_DEPARTURE_HOUR}:00+ departures)\n"
+            + "\n".join(lines),
         )
     else:
-        print("No price drop since last check.")
+        print("No price drops since last check.")
 
-    save_state(price, operator, departure_time)
+    save_state(new_state)
 
 
 if __name__ == "__main__":
