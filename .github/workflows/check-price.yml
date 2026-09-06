@@ -1,6 +1,6 @@
 # Runs check_price.py every 30 minutes for free using GitHub Actions,
-# and commits the latest known price back to the repo so the next run
-# can compare against it.
+# and commits the latest known prices back to the repo so the next run
+# can compare against them.
 
 name: Bus price check
 
@@ -29,10 +29,10 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: python check_price.py
 
-      - name: Save updated price
+      - name: Save updated prices
         run: |
           git config user.name "price-bot"
           git config user.email "price-bot@users.noreply.github.com"
-          git add last_price.json
-          git diff --staged --quiet || git commit -m "chore: update last known price [skip ci]"
+          git add last_prices.json
+          git diff --staged --quiet || git commit -m "chore: update last known prices [skip ci]"
           git push
