@@ -1,116 +1,98 @@
 {
   "016c12432dc0": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "10:30 PM",
     "operator": "Gujarat Travels",
     "price": 2999.0
   },
   "06502641c704": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "09:30 PM",
     "operator": "Anand Travels",
     "price": 3010.0
   },
   "23862e0c5955": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "09:00 PM",
     "operator": "Sundesha Travels",
     "price": 4100.0
   },
   "37a8aa2bd0ba": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "10:55 PM",
     "operator": "GUJARAT TRAVELS",
     "price": 2999.0
   },
-  "3c9fe9747a6f": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
-    "departure_time": "11:15 PM",
-    "operator": "VRL Travels",
-    "price": 4750.0
-  },
   "5f679cfca5fa": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "10:30 PM",
     "operator": "ANKIT SHRINATH TRAVELS",
     "price": 2800.0
   },
+  "7812e6099930": {
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
+    "departure_time": "11:30 PM",
+    "operator": "VRL Travels",
+    "price": 3750.0
+  },
   "9463971fea04": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "10:00 PM",
     "operator": "VRL Travels",
     "price": 5150.0
   },
   "9760de2008a3": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "10:00 PM",
     "operator": "Sea Bird Tourists",
-    "price": 3012.0
+    "price": 4999.0
   },
   "98f10ed22794": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "09:15 PM",
     "operator": "Jakhar Travels",
-    "price": 2200.0
+    "price": 3000.0
   },
   "9f4781166f99": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "09:15 PM",
     "operator": "Jakhar Travels",
     "price": 4000.0
   },
   "9fc5c48da857": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "11:20 PM",
     "operator": "JJ Yatra",
     "price": 3775.0
   },
-  "a1f63d1cfd9e": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
-    "departure_time": "10:25 PM",
-    "operator": "National Travels(nts)",
-    "price": 3143.0
-  },
   "a2388638b772": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "09:15 PM",
     "operator": "MUKESH TOURS AND TRAVELS",
     "price": 5000.0
   },
   "ad1c8a0b7c0e": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "10:30 PM",
     "operator": "Gujarat Travels",
     "price": 2999.0
   },
-  "ad37290dfd03": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
-    "departure_time": "11:10 PM",
-    "operator": "National Travels(nts)",
-    "price": 3143.0
-  },
   "c04296f34b5d": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "10:30 PM",
     "operator": "Anand Travels",
     "price": 3010.0
   },
   "c80ac788dd9c": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "09:58 PM",
     "operator": "M R Travels",
     "price": 3946.0
   },
   "e77baa6ec39a": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
+    "checked_at": "2026-09-10T16:58:43.161294+00:00",
     "departure_time": "09:15 PM",
     "operator": "KALYANI TRAVELS",
-    "price": 2330.0
-  },
-  "fe488f617aa8": {
-    "checked_at": "2026-09-10T13:04:18.358113+00:00",
-    "departure_time": "11:00 PM",
-    "operator": "NT Travels",
-    "price": 3797.0
+    "price": 3430.0
   }
 }
